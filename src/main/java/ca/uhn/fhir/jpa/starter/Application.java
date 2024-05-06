@@ -12,6 +12,7 @@ import ca.uhn.fhir.jpa.subscription.match.config.SubscriptionProcessorConfig;
 import ca.uhn.fhir.jpa.subscription.match.config.WebsocketDispatcherConfig;
 import ca.uhn.fhir.jpa.subscription.submit.config.SubscriptionSubmitterConfig;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.SpringApplication;
@@ -42,7 +43,9 @@ import org.springframework.context.annotation.Import;
 public class Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
-
+		Dotenv dotenv = Dotenv.load();
+        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
+    
 		SpringApplication.run(Application.class, args);
 
 		// Server is now accessible at eg. http://localhost:8080/fhir/metadata

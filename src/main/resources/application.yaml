@@ -13,49 +13,62 @@ management:
 spring:
   main:
     allow-circular-references: true
-    #allow-bean-definition-overriding: true
-  flyway:
-    enabled: false
-    baselineOnMigrate: true
-    fail-on-missing-locations: false
+    # allow-bean-definition-overriding: true
   datasource:
-    #url: 'jdbc:h2:file:./target/database/h2'
-    url: jdbc:h2:mem:test_mem
-    username: sa
-    password: null
-    driverClassName: org.h2.Driver
-    max-active: 15
-
-    # database connection pool size
-    hikari:
-      maximum-pool-size: 10
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driverClassName: org.postgresql.Driver
   jpa:
     properties:
-      hibernate.format_sql: false
-      hibernate.show_sql: false
+      hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect # Deprecation Warning: The class ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect dialect is deprecated and will be removed in a future release. Use ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect instead
+      hibernate.search.enabled: false
+# spring:
+#   main:
+#     allow-circular-references: true
+#     #allow-bean-definition-overriding: true
+#   flyway:
+#     enabled: false
+#     baselineOnMigrate: true
+#     fail-on-missing-locations: false
+#   datasource:
+#     #url: 'jdbc:h2:file:./target/database/h2'
+#     url: jdbc:h2:mem:test_mem
+#     username: sa
+#     password: null
+#     driverClassName: org.h2.Driver
+#     max-active: 15
 
-      #Hibernate dialect is automatically detected except Postgres and H2.
-      #If using H2, then supply the value of ca.uhn.fhir.jpa.model.dialect.HapiFhirH2Dialect
-      #If using postgres, then supply the value of ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
-      hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirH2Dialect
-  #      hibernate.hbm2ddl.auto: update
-  #      hibernate.jdbc.batch_size: 20
-  #      hibernate.cache.use_query_cache: false
-  #      hibernate.cache.use_second_level_cache: false
-  #      hibernate.cache.use_structured_entries: false
-  #      hibernate.cache.use_minimal_puts: false
+#     # database connection pool size
+#     hikari:
+#       maximum-pool-size: 10
+#   jpa:
+#     properties:
+#       hibernate.format_sql: false
+#       hibernate.show_sql: false
 
-  ###    These settings will enable fulltext search with lucene or elastic
-      hibernate.search.enabled: true
-  ### lucene parameters
-#      hibernate.search.backend.type: lucene
-#      hibernate.search.backend.analysis.configurer: ca.uhn.fhir.jpa.search.HapiHSearchAnalysisConfigurers$HapiLuceneAnalysisConfigurer
-#      hibernate.search.backend.directory.type: local-filesystem
-#      hibernate.search.backend.directory.root: target/lucenefiles
-#      hibernate.search.backend.lucene_version: lucene_current
-  ### elastic parameters ===> see also elasticsearch section below <===
-#      hibernate.search.backend.type: elasticsearch
-#      hibernate.search.backend.analysis.configurer: ca.uhn.fhir.jpa.search.HapiHSearchAnalysisConfigurers$HapiElasticAnalysisConfigurer
+#       #Hibernate dialect is automatically detected except Postgres and H2.
+#       #If using H2, then supply the value of ca.uhn.fhir.jpa.model.dialect.HapiFhirH2Dialect
+#       #If using postgres, then supply the value of ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+#       hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirH2Dialect
+#   #      hibernate.hbm2ddl.auto: update
+#   #      hibernate.jdbc.batch_size: 20
+#   #      hibernate.cache.use_query_cache: false
+#   #      hibernate.cache.use_second_level_cache: false
+#   #      hibernate.cache.use_structured_entries: false
+#   #      hibernate.cache.use_minimal_puts: false
+
+#   ###    These settings will enable fulltext search with lucene or elastic
+#       hibernate.search.enabled: true
+#   ### lucene parameters
+# #      hibernate.search.backend.type: lucene
+# #      hibernate.search.backend.analysis.configurer: ca.uhn.fhir.jpa.search.HapiHSearchAnalysisConfigurers$HapiLuceneAnalysisConfigurer
+# #      hibernate.search.backend.directory.type: local-filesystem
+# #      hibernate.search.backend.directory.root: target/lucenefiles
+# #      hibernate.search.backend.lucene_version: lucene_current
+#   ### elastic parameters ===> see also elasticsearch section below <===
+# #      hibernate.search.backend.type: elasticsearch
+# #      hibernate.search.backend.analysis.configurer: ca.uhn.fhir.jpa.search.HapiHSearchAnalysisConfigurers$HapiElasticAnalysisConfigurer
 hapi:
   fhir:
     ### This flag when enabled to true, will avail evaluate measure operations from CR Module.
@@ -174,12 +187,12 @@ hapi:
     search-coord-queue-capacity: 200
     
     # comma-separated package names, will be @ComponentScan'ed by Spring to allow for creating custom Spring beans
-    #custom-bean-packages:
+    custom-bean-packages: ${CUSTOM_BEAN_PACKAGES}
     
     # comma-separated list of fully qualified interceptor classes. 
     # classes listed here will be fetched from the Spring context when combined with 'custom-bean-packages', 
     # or will be instantiated via reflection using an no-arg contructor; then registered with the server  
-    #custom-interceptor-classes:  
+    custom-interceptor-classes: ${CUSTOM_INTERCEPTOR_CLASSES}
 
     # comma-separated list of fully qualified provider classes. 
     # classes listed here will be fetched from the Spring context when combined with 'custom-bean-packages', 
