@@ -3,6 +3,7 @@ package ca.uhn.fhir.jpa.starter.interceptors;
 import java.net.URI;
 import org.slf4j.Logger;
 import java.io.IOException;
+import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -33,7 +34,7 @@ import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 @Component
 @Interceptor
 public class NotificationInterceptor {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationInterceptor.class);
 
     /**
@@ -50,13 +51,23 @@ public class NotificationInterceptor {
     public void serverOutgoingResponse(RequestDetails requestDetails, HttpServletRequest servletRequest, ServletRequestDetails servletRequestDetails, IBaseResource iBaseResource, ResponseDetails responseDetails, HttpServletResponse httpServletResponse) {
         try {
             System.out.println("--------------- NOTIFICATION INTERCEPTOR ---------------");
-           
-            Object[] contextAndId = getResourceContext(iBaseResource);
-            String resourceId = (String) contextAndId[0];
-            FhirContext context = (FhirContext) contextAndId[1];
-
+            
+            Object[] contextAndId   = getResourceContext(iBaseResource);
+            String resourceId       = (String) contextAndId[0];
+            FhirContext context     = (FhirContext) contextAndId[1];
+            
             IParser parser      = context.newJsonParser(); // Or context.newXmlParser() for XML
             String responseBody = parser.encodeResourceToString(iBaseResource);
+            
+            /**
+             * ? Appending the encrypted 'authenticatedUserLoginId' with the 'responseBody' before being sent over to the POST Request
+             */
+            // String authenticatedUserLoginId = (String) servletRequest.getAttribute("authenticatedUserLoginId"); // Grab the value of 'authenticatedUserLoginId' initialized in AuthenticationInterceptor
+            String authenticatedUserLoginId = (String) servletRequestDetails.getUserData().get("authenticatedUserLoginId"); // Grab the value of 'authenticatedUserLoginId' initialized in AuthenticationInterceptor
+            JSONObject jsonResponse         = new JSONObject(responseBody);                                     // Parse the responseBody into a JSON object
+            
+            jsonResponse.put("authenticatedUserLoginId", authenticatedUserLoginId);                             // Add the authenticatedUserLoginId to the JSON object
+            responseBody                    = jsonResponse.toString();                                          // Convert the modified JSON object back to a string
 
             String requestURI           = servletRequestDetails.getServletRequest().getRequestURI().toString(); // Alternatively: Could have also used HttpServletRequest servletRequest object's getRequestURI() method directly
             String requestHttpMethod    = servletRequestDetails.getServletRequest().getMethod();                // Alternatively: Could have also used HttpServletRequest servletRequest object's getMethod() method directly
@@ -69,7 +80,7 @@ public class NotificationInterceptor {
             }
         // } catch (IOException | InterruptedException | URISyntaxException | RuntimeException | Exception exception) {
         } catch (Exception exception) {
-            System.out.println("************************** EXCEPTION **************************");
+            System.out.println("************************** Notification Interceptor EXCEPTION **************************");
             
             if (exception instanceof HttpResponseException) {
                 HttpResponseException httpResponseException = (HttpResponseException) exception;
@@ -127,7 +138,7 @@ public class NotificationInterceptor {
      * @throws InterruptedException
      */
     private void notifyHCH(String requestHttpMethod, String resourceId, String responseBody) throws URISyntaxException, IOException, InterruptedException, HttpResponseException {
-        String HCH_BASE_URL                     = System.getProperty("HCH_BASE_URL");
+        String NOTIFICATIONS_URL                = System.getProperty("HCH_BASE_URL") + System.getProperty("HCH_NOTIFICATIONS_URL");
         String HCH_CLIENT_GRANT_ACCESS_TOKEN    = System.getProperty("HCH_CLIENT_GRANT_ACCESS_TOKEN");
 
         HttpRequest homecareHubRequest              = null;
@@ -139,23 +150,23 @@ public class NotificationInterceptor {
             .header("Content-Type", "application/json");
         
         if("POST".equals(requestHttpMethod)) {
-            homecareHubRequest = requestBuilder.uri(new URI(HCH_BASE_URL))                      // ? This can throw the URISyntaxException
+            homecareHubRequest = requestBuilder.uri(new URI(NOTIFICATIONS_URL))                      // ? This can throw the URISyntaxException
                 .POST(HttpRequest.BodyPublishers.ofString(responseBody))                                        
                 .build();
                 
-            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString()); // ? This can throw the IOException / InterruptedException / HttpResponseException
+            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString());     // ? This can throw the IOException / InterruptedException / HttpResponseException
         } else if("PUT".equals(requestHttpMethod) || "PATCH".equals(requestHttpMethod)) {
-            homecareHubRequest = requestBuilder.uri(new URI(HCH_BASE_URL + "/" + resourceId))   // ? This can throw the URISyntaxException
+            homecareHubRequest = requestBuilder.uri(new URI(NOTIFICATIONS_URL + "/" + resourceId))  // ? This can throw the URISyntaxException
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(responseBody))
                 .build();
 
-            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString()); // ? This can throw the IOException / InterruptedException / HttpResponseException
+            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString());     // ? This can throw the IOException / InterruptedException / HttpResponseException
         } else if("DELETE".equals(requestHttpMethod)) {
-            homecareHubRequest = requestBuilder.uri(new URI(HCH_BASE_URL + "/" + resourceId))   // ? This can throw the URISyntaxException
+            homecareHubRequest = requestBuilder.uri(new URI(NOTIFICATIONS_URL + "/" + resourceId))  // ? This can throw the URISyntaxException
                 .DELETE()
                 .build();
 
-            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString()); // ? This can throw the IOException / InterruptedException / HttpResponseException
+            homecareHubResponse = httpClient.send(homecareHubRequest, BodyHandlers.ofString());     // ? This can throw the IOException / InterruptedException / HttpResponseException
         }
                 
         if(homecareHubResponse != null) {
