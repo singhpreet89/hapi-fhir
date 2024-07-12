@@ -1,5 +1,7 @@
 package ca.uhn.fhir.jpa.starter.interceptors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.interceptor.api.Interceptor;
@@ -23,10 +25,11 @@ import org.hl7.fhir.r4.model.CapabilityStatement.CapabilityStatementRestResource
 @Component
 @Interceptor
 public class CapabilitiesInterceptor {
-    
+    private static final Logger logger = LoggerFactory.getLogger(CapabilitiesInterceptor.class);
+
     @Hook(Pointcut.SERVER_CAPABILITY_STATEMENT_GENERATED)
     public void customize(IBaseConformance baseConformance) {
-        System.out.println("--------------- CAPABILIIES INTERCEPTOR ---------------");
+        logger.info("--------------- CAPABILIIES INTERCEPTOR ---------------");
 
         CapabilityStatement capabilityStatement = (CapabilityStatement) baseConformance;
 

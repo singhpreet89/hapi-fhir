@@ -99,7 +99,7 @@ public class AuthenticationInterceptor {
     @Hook(Pointcut.SERVER_INCOMING_REQUEST_POST_PROCESSED)
     public void incomingRequestPreHandled(RequestDetails requestDetails, HttpServletRequest servletRequest, ServletRequestDetails servletRequestDetails) {
     // public void incomingRequestPreHandled(RequestDetails requestDetails, ServletRequestDetails servletRequestDetails) {
-        System.out.println("--------------- AUTHENTICATION INTERCEPTOR ---------------");
+        logger.info("--------------- AUTHENTICATION INTERCEPTOR ---------------");
     
         String authHeader       = requestDetails.getHeader("Authorization");
         String BEARER_PREFIX    = "Bearer ";
@@ -245,7 +245,7 @@ public class AuthenticationInterceptor {
             servletRequestDetails.getUserData().put("authenticatedUserLoginId", jsonResponseObject.getString("id"));
             return true;
         } catch (Exception exception) { // Todo: (Check if Line 215 can Handle this) Remove this Handle exception block because we want to stop the execution of request at this point.
-            System.out.println("************************** Authentication Interceptor EXCEPTION **************************");
+            logger.info("************************** Authentication Interceptor EXCEPTION **************************");
             
             if (exception instanceof HttpResponseException) {
                 HttpResponseException httpResponseException = (HttpResponseException) exception;

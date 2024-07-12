@@ -4,6 +4,9 @@ import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.interceptor.api.Interceptor;
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 
@@ -16,10 +19,11 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 @Component
 @Interceptor
 public class IncomingRequestInterceptor {
+   private static final Logger logger = LoggerFactory.getLogger(IncomingRequestInterceptor.class);
 
    @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
    public void incomingRequestPreProcessed(HttpServletRequest servletRequest) {
-      System.out.println("--------------- INCOMING REQUEST INTERCEPTOR ---------------");
+      logger.info("--------------- INCOMING REQUEST INTERCEPTOR ---------------");
 
       String requestURI = servletRequest.getRequestURI();
       if (!requestURI.startsWith("/fhir/Patient") && !requestURI.startsWith("/fhir/swagger-ui") && !requestURI.equals("/fhir/api-docs") && !requestURI.equals("/fhir/metadata")) {

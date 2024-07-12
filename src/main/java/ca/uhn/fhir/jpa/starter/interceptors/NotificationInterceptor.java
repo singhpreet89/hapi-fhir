@@ -34,7 +34,6 @@ import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 @Component
 @Interceptor
 public class NotificationInterceptor {
-
     private static final Logger logger = LoggerFactory.getLogger(NotificationInterceptor.class);
 
     /**
@@ -50,7 +49,7 @@ public class NotificationInterceptor {
     @Hook(Pointcut.SERVER_OUTGOING_RESPONSE)
     public void serverOutgoingResponse(RequestDetails requestDetails, HttpServletRequest servletRequest, ServletRequestDetails servletRequestDetails, IBaseResource iBaseResource, ResponseDetails responseDetails, HttpServletResponse httpServletResponse) {
         try {
-            System.out.println("--------------- NOTIFICATION INTERCEPTOR ---------------");
+            logger.info("--------------- NOTIFICATION INTERCEPTOR ---------------");
             
             Object[] contextAndId   = getResourceContext(iBaseResource);
             String resourceId       = (String) contextAndId[0];
@@ -80,7 +79,7 @@ public class NotificationInterceptor {
             }
         // } catch (IOException | InterruptedException | URISyntaxException | RuntimeException | Exception exception) {
         } catch (Exception exception) {
-            System.out.println("************************** Notification Interceptor EXCEPTION **************************");
+            logger.info("************************** Notification Interceptor EXCEPTION **************************");
             
             if (exception instanceof HttpResponseException) {
                 HttpResponseException httpResponseException = (HttpResponseException) exception;
