@@ -2,7 +2,6 @@
 target/
 *.iml
 .env
-Dockerfile*
 
 # Compiled class file
 *.class
